@@ -8,7 +8,15 @@ import java.util.List;
 
 public class PostService {
 
-    private final PostDAO postDAO = new PostDAO();
+    private final PostDAO postDAO;
+
+    public PostService() {
+        this.postDAO = new PostDAO();
+    }
+
+    public PostService(PostDAO postDAO) {
+        this.postDAO = postDAO;
+    }
 
     public ObjectId createPost(Post post) {
         return postDAO.save(post);
@@ -20,5 +28,9 @@ public class PostService {
 
     public Post getPost(ObjectId id) {
         return postDAO.findById(id);
+    }
+
+    public List<Post> getPostsByUserId(int userId) {
+        return postDAO.findByUserId(userId);
     }
 }

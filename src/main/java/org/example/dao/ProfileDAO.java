@@ -10,13 +10,12 @@ public class ProfileDAO {
     private final Connection conn = MySQLConnection.getConnection();
 
     public boolean save(Profile profile) throws Exception {
-        String sql = "INSERT INTO profiles (user_id, bio, location, created_at) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO profiles (user_id, bio, location) VALUES (?, ?, ?)";
         PreparedStatement ps = conn.prepareStatement(sql);
 
         ps.setInt(1, profile.getUserId());
         ps.setString(2, profile.getBio());
         ps.setString(3, profile.getLocation());
-        ps.setString(4, profile.getCreatedAt());
 
         return ps.executeUpdate() > 0;
     }
@@ -37,5 +36,13 @@ public class ProfileDAO {
             );
         }
         return null;
+    }
+
+    public boolean updateBioByUserId(int userId, String bio) throws Exception {
+        String sql = "UPDATE profiles SET bio = ? WHERE user_id = ?";
+        PreparedStatement ps = conn.prepareStatement(sql);
+        ps.setString(1, bio);
+        ps.setInt(2, userId);
+        return ps.executeUpdate() > 0;
     }
 }

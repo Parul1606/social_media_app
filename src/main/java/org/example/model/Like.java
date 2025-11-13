@@ -17,15 +17,33 @@ public class Like {
         this.likedAt = likedAt;
     }
 
-    public ObjectId getId() { return id; }
-    public void setId(ObjectId id) { this.id = id; }
+    public ObjectId getId() {
+        return id;
+    }
 
-    public ObjectId getPostId() { return postId; }
-    public void setPostId(ObjectId postId) { this.postId = postId; }
+    public void setId(ObjectId id) {
+        this.id = id;
+    }
 
-    public int getUserId() { return userId; }
-    public void setUserId(int userId) { this.userId = userId; }
+    public ObjectId getPostId() {
+        return postId;
+    }
 
-    public long getLikedAt() { return likedAt; }
-    public void setLikedAt(long likedAt) { this.likedAt = likedAt; }
+    public void setPostId(ObjectId postId) {
+        this.postId = postId;
+    }
+
+    public int getUserId() {
+        return userId;
+    }
+    public void setUserId(int userId) {
+        this.userId = userId;
+    }
+
+    public long getLikedAt() {
+        return likedAt;
+    }
+    public void setLikedAt(long likedAt) {
+        this.likedAt = likedAt;
+    }
 }

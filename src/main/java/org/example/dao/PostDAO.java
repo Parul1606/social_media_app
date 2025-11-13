@@ -34,4 +34,10 @@ public class PostDAO {
     public Post findById(ObjectId id) {
         return collection.find(eq("_id", id)).first();
     }
+
+    public List<Post> findByUserId(int userId) {
+        List<Post> posts = new ArrayList<>();
+        collection.find(eq("userId", userId)).into(posts);
+        return posts;
+    }
 }

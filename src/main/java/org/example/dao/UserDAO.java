@@ -59,6 +59,15 @@ public class UserDAO {
         return rs.next() ? map(rs) : null;
     }
 
+    public boolean updatePasswordHashByEmail(String email, String newHash) throws Exception {
+        String sql = "UPDATE users SET password_hash = ? WHERE email = ?";
+        PreparedStatement ps = conn.prepareStatement(sql);
+        ps.setString(1, newHash);
+        ps.setString(2, email);
+
+        return ps.executeUpdate() > 0;
+    }
+
     private User map(ResultSet rs) throws Exception {
         return new User(
                 rs.getInt("user_id"),

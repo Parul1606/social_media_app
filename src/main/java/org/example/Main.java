@@ -3,6 +3,8 @@ package org.example;
 import org.example.model.*;
 import org.example.service.*;
 import org.bson.types.ObjectId;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.Timestamp;
 import java.util.List;
@@ -11,58 +13,99 @@ import java.util.Scanner;
 public class Main {
 
     static Scanner sc = new Scanner(System.in);
+    static final Logger log = LoggerFactory.getLogger(Main.class);
 
     static UserService userService = new UserService();
     static PostService postService = new PostService();
     static LikeService likeService = new LikeService();
     static CommentService commentService = new CommentService();
+    static ProfileService profileService = new ProfileService();
+    static FollowService followService = new FollowService();
 
-    // ✅ Correct variable name
     static User loggedInUser = null;
 
     public static void main(String[] args) throws Exception {
 
         while (true) {
-            System.out.println("\n=== SOCIAL MEDIA APP ===");
-            System.out.println("1. Register");
-            System.out.println("2. Login");
-            System.out.println("3. Create Post");
-            System.out.println("4. View Feed");
-            System.out.println("5. Like a Post");
-            System.out.println("6. Comment on Post");
-            System.out.println("7. Logout");
-            System.out.println("8. Exit");
-            System.out.print("Choose: ");
+            log.info("\n=== SOCIAL MEDIA APP ===");
+            if (loggedInUser == null) {
+                log.info("1. Register");
+                log.info("2. Login");
+                log.info("3. Reset Password");
+                log.info("4. Exit");
+                log.info("Choose: ");
 
-            int ch = Integer.parseInt(sc.nextLine());
+                int ch = Integer.parseInt(sc.nextLine());
+                switch (ch) {
+                    case 1 -> register();
+                    case 2 -> login();
+                    case 3 -> resetPassword();
+                    case 4 -> System.exit(0);
+                    default -> log.info("Invalid choice.");
+                }
+            } else {
+                log.info("1. Create Post");
+                log.info("2. View Feed");
+                log.info("3. Like a Post");
+                log.info("4. Comment on Post");
+                log.info("5. Change Password");
+                log.info("6. View My Profile");
+                log.info("7. Edit Profile (bio)");
+                log.info("8. View My Posts");
+                log.info("9. Follow a User");
+                log.info("10. Logout");
+                log.info("11. Exit");
+                log.info("Choose: ");
 
-            switch (ch) {
-                case 1 -> register();
-                case 2 -> login();
-                case 3 -> createPost();
-                case 4 -> viewFeed();
-                case 5 -> likePost();
-                case 6 -> commentOnPost();
-                case 7 -> logout();
-                case 8 -> System.exit(0);
-                default -> System.out.println("Invalid choice.");
+                int ch = Integer.parseInt(sc.nextLine());
+                switch (ch) {
+                    case 1 -> createPost();
+                    case 2 -> viewFeed();
+                    case 3 -> likePost();
+                    case 4 -> commentOnPost();
+                    case 5 -> changePasswordLoggedIn();
+                    case 6 -> viewMyProfile();
+                    case 7 -> editProfileBio();
+                    case 8 -> viewMyPosts();
+                    case 9 -> followUser();
+                    case 10 -> logout();
+                    case 11 -> System.exit(0);
+                    default -> log.info("Invalid choice.");
+                }
             }
         }
     }
 
-    // ------------------------------------------------------------
+    static void resetPassword() {
+        log.info("Enter your email: ");
+        String email = sc.nextLine();
+        try {
+            User user = userService.getByEmail(email);
+            if (user == null) {
+                log.info("No user found with this email.");
+                return;
+            }
+            log.info("Enter new password: ");
+            String newPassword = sc.nextLine();
+            boolean ok = userService.resetPassword(email, newPassword);
+            if (ok) log.info("Password reset successful.");
+            else log.info("Failed to reset password.");
+        } catch (Exception e) {
+            log.error("Error: {}", e.getMessage());
+        }
+    }
 
     static void register() throws Exception {
-        System.out.print("Username: ");
+        log.info("Username: ");
         String username = sc.nextLine();
 
-        System.out.print("Full Name: ");
+        log.info("Full Name: ");
         String fullName = sc.nextLine();
 
-        System.out.print("Email: ");
+        log.info("Email: ");
         String email = sc.nextLine();
 
-        System.out.print("Password: ");
+        log.info("Password: ");
         String pass = sc.nextLine();
 
         User u = new User();
@@ -72,39 +115,34 @@ public class Main {
 
         boolean ok = userService.register(u, pass);
 
-        if (ok) System.out.println("Registered successfully.");
-        else System.out.println("User already exists (email/username).");
+        if (ok) log.info("Registered successfully.");
+        else log.info("User already exists (email/username).");
     }
 
-
-    // ------------------------------------------------------------
-
     static void login() throws Exception {
-        System.out.print("Email: ");
+        log.info("Email: ");
         String email = sc.nextLine();
 
-        System.out.print("Password: ");
+        log.info("Password: ");
         String pass = sc.nextLine();
 
         User u = userService.login(email, pass);
 
         if (u == null) {
-            System.out.println("Invalid credentials.");
+            log.info("Invalid credentials.");
         } else {
             loggedInUser = u;
-            System.out.println("Login successful. Welcome " + u.getFullName());
+            log.info("Login successful. Welcome {}", u.getFullName());
         }
     }
 
-    // ------------------------------------------------------------
-
     static void createPost() {
         if (loggedInUser == null) {
-            System.out.println("Please log in first.");
+            log.info("Please log in first.");
             return;
         }
 
-        System.out.print("Enter post content: ");
+        log.info("Enter post content: ");
         String content = sc.nextLine();
 
         Post p = new Post();
@@ -116,7 +154,7 @@ public class Main {
 
         postService.createPost(p);
 
-        System.out.println("Post created.");
+        log.info("Post created.");
     }
 
     // ------------------------------------------------------------
@@ -124,10 +162,10 @@ public class Main {
     static void viewFeed() {
         List<Post> posts = postService.getAllPosts();
 
-        System.out.println("\n=== FEED ===");
+        log.info("\n=== FEED ===");
 
         if (posts.isEmpty()) {
-            System.out.println("No posts yet.");
+            log.info("No posts yet.");
             return;
         }
 
@@ -136,27 +174,32 @@ public class Main {
             long likeCount = likeService.countLikes(p.getId());
             List<Comment> comments = commentService.getComments(p.getId());
 
-            System.out.println("\nPost ID: " + p.getId());
-            System.out.println("User ID: " + p.getUserId());
-            System.out.println("Content: " + p.getContent());
-            System.out.println("Likes: " + likeCount);
-            System.out.println("Comments:");
+            log.info("\nPost ID: {}", p.getId());
+            String authorName = String.valueOf(p.getUserId());
+            try {
+                User author = userService.getById(p.getUserId());
+                if (author != null && author.getUsername() != null) {
+                    authorName = author.getUsername();
+                }
+            } catch (Exception ignored) {}
+            log.info("Posted by: {}", authorName);
+            log.info("Content: {}", p.getContent());
+            log.info("Likes: {}", likeCount);
+            log.info("Comments:");
 
             for (Comment c : comments) {
-                System.out.println(" - (" + c.getUserId() + ") " + c.getText());
+                log.info(" - ({}) {}", c.getUserId(), c.getText());
             }
         }
     }
 
-    // ------------------------------------------------------------
-
     static void likePost() {
         if (loggedInUser == null) {
-            System.out.println("Please log in first.");
+            log.info("Please log in first.");
             return;
         }
 
-        System.out.print("Enter Post ID to Like: ");
+        log.info("Enter Post ID to Like: ");
         String id = sc.nextLine();
 
         Like like = new Like();
@@ -167,21 +210,19 @@ public class Main {
 
         likeService.addLike(like);
 
-        System.out.println("Liked.");
+        log.info("Liked.");
     }
-
-    // ------------------------------------------------------------
 
     static void commentOnPost() {
         if (loggedInUser == null) {
-            System.out.println("Please log in first.");
+            log.info("Please log in first.");
             return;
         }
 
-        System.out.print("Enter Post ID: ");
+        log.info("Enter Post ID: ");
         String id = sc.nextLine();
 
-        System.out.print("Comment: ");
+        log.info("Comment: ");
         String text = sc.nextLine();
 
         Comment c = new Comment();
@@ -193,13 +234,120 @@ public class Main {
 
         commentService.addComment(c);
 
-        System.out.println("Comment added.");
+        log.info("Comment added.");
     }
 
-    // ------------------------------------------------------------
+    static void changePasswordLoggedIn() {
+        if (loggedInUser == null) {
+            log.info("Please log in first.");
+            return;
+        }
+        log.info("Current password: ");
+        String current = sc.nextLine();
+        log.info("New password: ");
+        String next = sc.nextLine();
+        try {
+            boolean ok = userService.changePassword(loggedInUser.getUserId(), current, next);
+            if (ok) log.info("Password changed successfully.");
+            else log.info("Failed to change password (check current password).");
+        } catch (Exception e) {
+            log.error("Error: {}", e.getMessage());
+        }
+    }
+
+    static void viewMyProfile() {
+        if (loggedInUser == null) {
+            log.info("Please log in first.");
+            return;
+        }
+        try {
+            int uid = loggedInUser.getUserId();
+            Profile p = profileService.getProfileByUserId(uid);
+            int followers = followService.countFollowers(uid);
+            int following = followService.countFollowing(uid);
+            log.info("\n=== MY PROFILE ===");
+            log.info("Username: {}", loggedInUser.getUsername());
+            log.info("Full Name: {}", loggedInUser.getFullName());
+            log.info("Email: {}", loggedInUser.getEmail());
+            log.info("Joined: {}", loggedInUser.getCreatedAt());
+            log.info("Bio: {}", (p != null ? p.getBio() : ""));
+            log.info("Followers: {}, Following: {}", followers, following);
+        } catch (Exception e) {
+            log.error("Error: {}", e.getMessage());
+        }
+    }
+
+    static void editProfileBio() {
+        if (loggedInUser == null) {
+            log.info("Please log in first.");
+            return;
+        }
+        log.info("Enter new bio: ");
+        String bio = sc.nextLine();
+        try {
+            boolean ok = profileService.updateBio(loggedInUser.getUserId(), bio);
+            if (ok) log.info("Bio updated.");
+            else log.info("Failed to update bio.");
+        } catch (Exception e) {
+            log.error("Error: {}", e.getMessage());
+        }
+    }
+
+    static void viewMyPosts() {
+        if (loggedInUser == null) {
+            log.info("Please log in first.");
+            return;
+        }
+        try {
+            List<Post> mine = postService.getPostsByUserId(loggedInUser.getUserId());
+            log.info("\n=== MY POSTS ===");
+            if (mine.isEmpty()) {
+                log.info("No posts yet.");
+                return;
+            }
+            for (Post p : mine) {
+                log.info("- {}: {}", p.getId(), p.getContent());
+            }
+        } catch (Exception e) {
+            log.error("Error: {}", e.getMessage());
+        }
+    }
+
+    static void followUser() {
+        if (loggedInUser == null) {
+            log.info("Please log in first.");
+            return;
+        }
+        log.info("Enter username to follow: ");
+        String uname = sc.nextLine();
+        try {
+            User u = userService.getByUsername(uname);
+            if (u == null) {
+                log.info("No such user.");
+                return;
+            }
+            if (u.getUserId() == loggedInUser.getUserId()) {
+                log.info("You cannot follow yourself.");
+                return;
+            }
+            boolean ok = followService.follow(loggedInUser.getUserId(), u.getUserId());
+            if (ok) {
+                log.info("Now following {}.", uname);
+            } else {
+                boolean already = followService.isFollowing(loggedInUser.getUserId(), u.getUserId());
+                if (already) {
+                    log.info("Already following {}.", uname);
+                } else {
+                    log.info("Could not follow {}. Please check logs for details.", uname);
+                }
+            }
+        } catch (Exception e) {
+            log.error("Error: {}", e.getMessage());
+        }
+    }
 
     static void logout() {
         loggedInUser = null;
-        System.out.println("Logged out.");
+        log.info("Logged out.");
     }
 }
